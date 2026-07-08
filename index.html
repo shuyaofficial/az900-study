@@ -7,6 +7,28 @@
   <meta name="color-scheme" content="light dark">
   <title>AZ-900 合格ダッシュボード</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* app.js/styles.css は変更禁止のため、グローバルナビのスタイルはここに最小限だけ置く。 */
+    .global-nav {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      padding: 8px var(--pad-page) calc(20px + env(safe-area-inset-bottom));
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .global-nav a {
+      font-size: 13px;
+      color: var(--text-3);
+      text-decoration: none;
+      transition: color var(--dur-fast) var(--ease-out);
+    }
+
+    .global-nav a:hover {
+      color: var(--accent);
+    }
+  </style>
 </head>
 
 <body>
@@ -18,6 +40,12 @@
       </p>
     </noscript>
   </main>
+
+  <!-- app.js の描画領域(#app)の外側に置く、控えめな固定フッタナビ。 -->
+  <nav class="global-nav" aria-label="ページ移動">
+    <a href="guide.html">使い方ガイド</a>
+    <a href="chat.html">AI解説チャット</a>
+  </nav>
 
   <!-- 非module・プレーンな defer スクリプト。読み込み順は data.js → app.js。 -->
   <script defer src="data.js"></script>
