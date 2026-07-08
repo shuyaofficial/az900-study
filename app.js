@@ -337,8 +337,13 @@
   }
   /* --- ヘッダ ------------------------------------------------------------- */
   function buildHeader() {
+    var nav = el("nav", { class: "header__nav", "aria-label": "ページ移動" }, [
+      el("a", { class: "header__link", href: "guide.html", text: "ガイド" }),
+      el("a", { class: "header__link header__link--accent", href: "chat.html", text: "AI解説" }),
+    ]);
     return el("header", { class: "header" }, [
       el("h1", { class: "header__title", text: DATA.meta.title }),
+      nav,
     ]);
   }
   /* --- ヒーロー ----------------------------------------------------------- */
