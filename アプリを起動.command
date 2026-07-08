@@ -8,7 +8,7 @@ if ! command -v node >/dev/null 2>&1; then
 fi
 
 if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8975/api/health | grep -q "^200$"; then
-  open "http://127.0.0.1:8975/chat.html"
+  open "http://127.0.0.1:8975/"
   exit 0
 fi
 
@@ -17,7 +17,7 @@ fi
     curl -s -o /dev/null http://127.0.0.1:8975/api/health && break
     sleep 0.5
   done
-  open "http://127.0.0.1:8975/chat.html"
+  open "http://127.0.0.1:8975/"
 ) &
 
 exec node local-bridge/server.mjs

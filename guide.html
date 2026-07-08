@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <title>使い方ガイド — AZ-900</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="assets/styles.css">
   <style>
     /* guide.html 固有の最小スタイル（styles.css のトークンを再利用） */
     .guide {
@@ -246,11 +246,13 @@
           <tr><th>ファイル</th><th>役割</th></tr>
         </thead>
         <tbody>
-          <tr><td><code>index.html</code></td><td>学習ダッシュボード本体。<b>まずこれを開きます。</b></td></tr>
-          <tr><td><code>chat.html</code></td><td>AI解説チャット。問題の画像や質問を送ると解説してくれます。</td></tr>
-          <tr><td><code>guide.html</code></td><td>このガイド。</td></tr>
-          <tr><td><code>styles.css</code> / <code>app.js</code> / <code>data.js</code></td><td>アプリの部品。<b>触らないでください。</b></td></tr>
-          <tr><td><code>local-bridge</code></td><td>無料AIモード用の小さなサーバ（Macでの起動用）。</td></tr>
+          <tr><td><code>アプリを起動.command</code></td><td><b>アプリはこれ。</b>ダブルクリックでダッシュボードが開きます（無料AIモード込み／Mac）。</td></tr>
+          <tr><td><code>はじめにお読みください.html</code></td><td><b>説明書はこれ。</b>開くとこのガイドが表示されます。</td></tr>
+          <tr><td><code>index.html</code></td><td>学習ダッシュボード本体（Web用）。直接ダブルクリックでも開けます。</td></tr>
+          <tr><td><code>chat.html</code></td><td>AI解説チャット本体（Web用）。</td></tr>
+          <tr><td><code>guide.html</code></td><td>このガイド本体（Web用）。</td></tr>
+          <tr><td><code>assets</code></td><td>アプリの部品が入った箱。<b>触らないでください。</b></td></tr>
+          <tr><td><code>local-bridge</code></td><td>無料AIモード用の小さなサーバ。<b>触らないでください。</b></td></tr>
           <tr><td><code>DESIGN.md</code> / <code>README.md</code></td><td>開発用のメモ。使う分には読まなくて大丈夫です。</td></tr>
         </tbody>
       </table>
@@ -264,7 +266,7 @@
       <ul class="g-list">
         <li><span class="g-list__marker">1</span><span>公開URLを開く：<code>https://shuyaofficial.github.io/az900-study/</code>（スマホでもOK）。</span></li>
         <li><span class="g-list__marker">2</span><span><code>index.html</code> をダブルクリックして、いつものブラウザで開く。</span></li>
-        <li><span class="g-list__marker">3</span><span>「AIチャットを起動.command」をダブルクリック（無料AIモード込みで立ち上がります／Mac）。</span></li>
+        <li><span class="g-list__marker">3</span><span>「アプリを起動.command」をダブルクリック（ダッシュボード＋無料AIモード込みで立ち上がります／Mac）。</span></li>
       </ul>
     </section>
 
@@ -298,7 +300,7 @@
         <tbody>
           <tr>
             <td>ローカル・<br>無料モード</td>
-            <td>Macで「起動.command」を実行して使います。手元の <code>claude</code> CLI を利用するため<b>無料</b>。設定は不要です。</td>
+            <td>Macで「アプリを起動.command」を実行して使います。手元の <code>claude</code> CLI を利用するため<b>無料</b>。設定は不要です。</td>
           </tr>
           <tr>
             <td>APIモード</td>
@@ -320,11 +322,11 @@
         </div>
         <div>
           <p class="qa__q">Q. チャットが「キー未設定」と出る</p>
-          <p class="qa__a">APIモードで使うには、設定でAnthropicのAPIキーを入力してください。無料で使いたい場合は「起動.command」から立ち上げてください。</p>
+          <p class="qa__a">APIモードで使うには、設定でAnthropicのAPIキーを入力してください。無料で使いたい場合は「アプリを起動.command」から立ち上げてください。</p>
         </div>
         <div>
           <p class="qa__q">Q. 無料モードにならない</p>
-          <p class="qa__a">「起動.command」を<b>先に実行</b>しているか確認してください。ローカルサーバが立ち上がっていると、チャットは自動で無料モード（緑バッジ）になります。</p>
+          <p class="qa__a">「アプリを起動.command」を<b>先に実行</b>しているか確認してください。ローカルサーバが立ち上がっていると、チャットは自動で無料モード（緑バッジ）になります。</p>
         </div>
         <div>
           <p class="qa__q">Q. データはどこに送られる？</p>

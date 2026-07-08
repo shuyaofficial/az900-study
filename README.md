@@ -22,19 +22,17 @@ python3 -m http.server 8973
 
 ## 構成
 
+Finder で迷わないよう、入口2つを日本語名で用意しています。
+
 | ファイル | 役割 |
 |---|---|
-| `index.html` | 骨組み（プレーンな `<script>` で `data.js` → `app.js` を読み込み） |
-| `styles.css` | デザインシステム実装（ダーク/ライト・reduced-motion 対応） |
-| `data.js` | 教材シードデータ（数量・レクチャー名の「正」） |
-| `app.js` | 状態管理・レンダリング・localStorage・ペース計算（IIFE） |
-| `guide.html` | 使い方ガイド（初心者向け・自己完結の1ページ読み物） |
-| `chat.html` | AI解説チャット（`styles.css`＋`chat.css`＋`chat-*.js` を読み込み） |
-| `chat.css` | チャット固有スタイル（`styles.css` のトークンを再利用） |
-| `chat-db.js` | チャット履歴の IndexedDB ラッパ（`az900-chat` v1・IIFE） |
-| `chat-api.js` | バックエンド抽象化（ローカルブリッジ / BYOK・Anthropic API・IIFE） |
-| `chat-app.js` | チャットUI・状態管理・画像処理・送信フロー（IIFE） |
-| `local-bridge` | 無料AIモード用のローカルサーバ（`127.0.0.1:8975`・`claude` CLI 経由） |
+| `アプリを起動.command` | **アプリの入口（Mac）**。ダブルクリックでダッシュボードが開く（無料AIモード込み） |
+| `はじめにお読みください.html` | **説明書の入口**。開くと `guide.html`（使い方ガイド）へ移動 |
+| `index.html` | 学習ダッシュボード本体（プレーンな `<script>` で `assets/data.js` → `assets/app.js`） |
+| `chat.html` | AI解説チャット本体（`assets/` の chat 系 CSS/JS を読み込み） |
+| `guide.html` | 使い方ガイド本体（初心者向け・自己完結の1ページ読み物） |
+| `assets/` | アプリの部品置き場（`styles.css` / `app.js` / `data.js` / `chat.css` / `chat-*.js`） |
+| `local-bridge/` | 無料AIモード用のローカルサーバ（`127.0.0.1:8975`・`claude` CLI 経由） |
 | `DESIGN.md` | デザイン規約（配色・タイポ・余白・モーション） |
 
 ## AI解説チャット
