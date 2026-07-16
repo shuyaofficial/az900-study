@@ -216,6 +216,24 @@
     CONFIG.mapFields.forEach(function (f) {
       merged[f] = Object.assign({}, remote[f] || {}, local[f] || {});
     });
+    merged.deadlines = mergeDeadlines(local.deadlines, remote.deadlines);
+    return merged;
+  }
+  // deadlines は3キー(lecture/quiz/exam)ごとに setAt の新しい方(LWW)を採用。
+  // 片方のみ値を持つ場合はその値、どちらも無ければ null。
+  function mergeDeadlines(l, r) {
+    var localD = l || {};
+    var remoteD = r || {};
+    var merged = {};
+    ["lecture", "quiz", "exam"].forEach(function (track) {
+      var lv = localD[track];
+      var rv = remoteD[track];
+      if (lv && rv) {
+        merged[track] = String(rv.setAt || "") > String(lv.setAt || "") ? rv : lv;
+      } else {
+        merged[track] = lv || rv || null;
+      }
+    });
     return merged;
   }
   function applyRemote(obj) {

@@ -72,7 +72,7 @@
     return {
       version: SCHEMA_VERSION,
       startDate: toYmd(todayLocal()),
-      examDate: null,
+      deadlines: { lecture: null, quiz: null, exam: null },
       activeTab: "lecture",
       openSections: {},
       lectureDone: {},
@@ -97,8 +97,9 @@
     return {
       version: SCHEMA_VERSION,
       startDate: isYmd(obj.startDate) ? obj.startDate : base.startDate,
-      examDate: isYmd(obj.examDate) ? obj.examDate : null,
-      activeTab: obj.activeTab === "quiz" ? "quiz" : "lecture",
+      deadlines: normalizeDeadlines(obj.deadlines, obj.examDate),
+      activeTab: (obj.activeTab === "quiz" || obj.activeTab === "calendar")
+        ? obj.activeTab : "lecture",
       openSections: isObj(obj.openSections) ? obj.openSections : {},
       lectureDone: isObj(obj.lectureDone) ? obj.lectureDone : {},
       quizCells: isObj(obj.quizCells) ? obj.quizCells : {},
@@ -106,6 +107,30 @@
   }
   function isObj(v) { return v && typeof v === "object" && !Array.isArray(v); }
   function isYmd(v) { return typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v); }
+  // 期限3種(lecture/quiz/exam)を検証。旧 examDate（文字列）からの移行も担う。
+  function normalizeDeadlines(v, legacyExam) {
+    var src = isObj(v) ? v : {};
+    var out = {
+      lecture: normalizeDeadlineEntry(src.lecture),
+      quiz: normalizeDeadlineEntry(src.quiz),
+      exam: normalizeDeadlineEntry(src.exam),
+    };
+    if (!out.exam && isYmd(legacyExam)) {
+      out.exam = { date: legacyExam, setAt: "" };
+    }
+    return out;
+  }
+  function normalizeDeadlineEntry(v) {
+    if (!isObj(v) || !isYmd(v.date)) return null;
+    return { date: v.date, setAt: typeof v.setAt === "string" ? v.setAt : "" };
+  }
+  // ユーザー設定の期限があればそれを、無ければ教材既定値(data.js)を返す。
+  // exam は既定値を持たないため未設定時は null。
+  function effectiveDeadline(track) {
+    var d = state.deadlines[track];
+    if (d) return d.date;
+    return (DATA[track] && DATA[track].deadline) || null;
+  }
 
   function saveState(state) {
     try {
@@ -217,9 +242,6 @@
     }
     return { kind: "danger", text: n + "遅れ" };
   }
-  function daysLeftFor(deadline) {
-    return Math.max(1, Math.ceil(diffDays(parseDate(deadline), todayLocal())));
-  }
   /* --- DOM ヘルパ --------------------------------------------------------- */
   // SVG の XML 名前空間 URI（W3C 規定の識別子。ネットワーク取得は発生しない）。
   // 外部URL検査(grep)に引っかからないよう構成要素から組み立てる。
@@ -330,7 +352,9 @@
   function render(opts) {
     var frag = document.createDocumentFragment();
     frag.appendChild(buildHeader());
-    frag.appendChild(buildHero(opts));
+    if (state.activeTab !== "calendar") {
+      frag.appendChild(buildHero(opts));
+    }
     frag.appendChild(buildSegmented());
     frag.appendChild(buildPanels());
     frag.appendChild(buildFooter());
@@ -360,11 +384,11 @@
     var unit = isLecture ? "本" : "問";
     var pace = isLecture
       ? computePace({
-        deadline: DATA.lecture.deadline, total: LECTURE_TOTAL,
+        deadline: effectiveDeadline("lecture"), total: LECTURE_TOTAL,
         done: done, remainingSec: lectureRemainingSeconds(),
       })
       : computePace({
-        deadline: DATA.quiz.deadline, total: QUIZ_CELLS_TOTAL,
+        deadline: effectiveDeadline("quiz"), total: QUIZ_CELLS_TOTAL,
         done: quizDoneCount(),
       });
 
@@ -388,32 +412,100 @@
     // 今日やるべき
     var todayLine = buildTodayLine(isLecture, pace);
     var badge = buildBadge(pace.badge);
+    var todayChildren = [todayLine, badge];
+    var forecastLine = buildForecastLine(isLecture);
+    if (forecastLine) todayChildren.push(forecastLine);
     return el("section", { class: "card hero" }, [
       buildChips(),
       ringWrap,
-      el("div", { class: "hero__today" }, [todayLine, badge]),
+      el("div", { class: "hero__today" }, todayChildren),
     ]);
   }
   function buildChips() {
-    var l = daysLeftFor(DATA.lecture.deadline);
-    var q = daysLeftFor(DATA.quiz.deadline);
     return el("div", { class: "hero__chips" }, [
-      chip("①", l),
-      chip("②", q),
+      deadlineChip("lecture", "①"),
+      deadlineChip("quiz", "②"),
+      deadlineChip("exam", "試験"),
     ]);
   }
-  function chip(mark, days) {
-    var cls = "chip " + urgencyClass(days);
-    return el("div", { class: cls }, [
-      el("span", { text: mark + " 締切まで" }),
-      el("span", { class: "chip__days num", text: String(days) }),
-      el("span", { text: "日" }),
-    ]);
+  // 期限チップ（タップで date input を開いて編集可能）。
+  // d>0: 締切まで, d===0: 今日が締切, d<0: 締切超過。exam は文言のみ異なる。
+  function deadlineChip(track, mark) {
+    var ymd = effectiveDeadline(track);
+    var isExam = track === "exam";
+    if (!ymd) {
+      // exam のみ ymd なしになりうる。「試験」マークは文言に内包済みで冗長なため付けない。
+      return chipNode(track, "chip--unset", [
+        el("span", { text: "試験日 未設定" }),
+      ], null);
+    }
+    var d = diffDays(parseDate(ymd), todayLocal());
+    var cls, children;
+    if (d > 0) {
+      cls = urgencyClass(d);
+      children = [
+        el("span", { text: isExam ? "試験まで" : (mark + " 締切まで") }),
+        el("span", { class: "chip__days num", text: String(d) }),
+        el("span", { text: "日" }),
+      ];
+    } else if (d === 0) {
+      cls = "chip--danger";
+      children = [el("span", { text: isExam ? "今日が試験日" : (mark + " 今日が締切") })];
+    } else {
+      cls = "chip--danger";
+      children = [
+        el("span", { text: isExam ? "試験日" : (mark + " 締切") }),
+        el("span", { class: "chip__days num", text: String(Math.abs(d)) }),
+        el("span", { text: "日超過" }),
+      ];
+    }
+    return chipNode(track, cls, children, ymd);
+  }
+  // チップ本体は <label> ＋透明 date input（クリックでピッカーを開く）。
+  function chipNode(track, cls, children, ymd) {
+    var input = el("input", {
+      type: "date", class: "chip__input",
+      "aria-label": chipInputLabel(track), value: ymd || "",
+    });
+    input.addEventListener("click", function () {
+      try { input.showPicker && input.showPicker(); } catch (e) { /* 未対応ブラウザは無視 */ }
+    });
+    input.addEventListener("change", function () { setDeadline(track, input.value); });
+    return el("label", { class: "chip chip--edit " + cls }, children.concat([input]));
+  }
+  function chipInputLabel(track) {
+    if (track === "lecture") return "① 講座の締切日を編集";
+    if (track === "quiz") return "② 問題集の締切日を編集";
+    return "試験日を編集";
   }
   function urgencyClass(days) {
     if (days > DAYS_WARN) return "chip--normal";
     if (days >= 1) return "chip--warn";
     return "chip--danger";
+  }
+  // ペースからの完了予測日（calendar.js 未読込 or 予測不可なら表示しない）。
+  function buildForecastLine(isLecture) {
+    if (!window.AZ900_CALENDAR || typeof window.AZ900_CALENDAR.project !== "function") return null;
+    var opts = isLecture
+      ? {
+        done: lectureDoneCount(), total: LECTURE_TOTAL,
+        startYmd: state.startDate, deadlineYmd: effectiveDeadline("lecture"),
+      }
+      : {
+        done: quizDoneCount(), total: QUIZ_CELLS_TOTAL,
+        startYmd: state.startDate, deadlineYmd: effectiveDeadline("quiz"),
+      };
+    var result = window.AZ900_CALENDAR.project(opts);
+    if (!result || result.kind !== "date") return null;
+    return el("div", { class: "hero__forecast" }, [
+      el("span", { text: "このペースなら " }),
+      el("b", { class: "num", text: fmtMonthDay(result.ymd) }),
+      el("span", { text: " ごろ完了" }),
+    ]);
+  }
+  function fmtMonthDay(ymd) {
+    var d = parseDate(ymd);
+    return (d.getMonth() + 1) + "月" + d.getDate() + "日";
   }
   function buildTodayLine(isLecture, pace) {
     if (isLecture) {
@@ -447,13 +539,14 @@
   /* --- セグメントコントロール -------------------------------------------- */
   function buildSegmented() {
     var seg = el("div", {
-      class: "segmented", role: "tablist",
-      "aria-label": "講座と問題集の切替",
+      class: "segmented segmented--3", role: "tablist",
+      "aria-label": "講座・問題集・カレンダーの切替",
       dataset: { active: state.activeTab },
     }, [
       el("span", { class: "segmented__pill", "aria-hidden": "true" }),
       segBtn("lecture", DATA.lecture.label),
       segBtn("quiz", DATA.quiz.label),
+      segBtn("calendar", "カレンダー"),
     ]);
     return seg;
   }
@@ -479,9 +572,39 @@
       class: "panel", role: "tabpanel", "aria-label": DATA.quiz.label,
       hidden: state.activeTab !== "quiz",
     }, [buildQuizTab()]);
+    // カレンダーは選択中のみ構築（遅延構築。calendar.js のセッション状態も選択中のみ触る）。
+    var calendarPanel = el("div", {
+      class: "panel", role: "tabpanel", "aria-label": "カレンダー",
+      hidden: state.activeTab !== "calendar",
+    }, [state.activeTab === "calendar" ? buildCalendarTab() : null]);
     wrap.appendChild(lecturePanel);
     wrap.appendChild(quizPanel);
+    wrap.appendChild(calendarPanel);
     return wrap;
+  }
+  /* --- ③ カレンダータブ --------------------------------------------------- */
+  function buildCalendarTab() {
+    if (!window.AZ900_CALENDAR || typeof window.AZ900_CALENDAR.build !== "function") {
+      return el("div", { class: "card cal cal--fallback" }, ["カレンダーを読み込めませんでした"]);
+    }
+    return window.AZ900_CALENDAR.build(calendarCtx());
+  }
+  // calendar.js へ渡すコンテキスト（毎レンダー生成、state は読み取り専用として渡す）。
+  function calendarCtx() {
+    return {
+      el: el,
+      state: state,
+      effectiveDeadline: effectiveDeadline,
+      setDeadline: setDeadline,
+      counts: {
+        lectureDone: lectureDoneCount(),
+        lectureTotal: LECTURE_TOTAL,
+        quizDone: quizDoneCount(),
+        quizTotal: QUIZ_CELLS_TOTAL,
+      },
+      fmtMonthDay: fmtMonthDay,
+      requestRender: function () { render({}); },
+    };
   }
   /* --- ① 講座タブ -------------------------------------------------------- */
   function buildLectureTab() {
@@ -713,6 +836,13 @@
     if (next[sectionId]) delete next[sectionId];
     else next[sectionId] = true;
     setState({ openSections: next });
+  }
+  // track: "lecture" | "quiz" | "exam"。空/不正な日付は無視する。
+  function setDeadline(track, ymd) {
+    if (!isYmd(ymd)) return;
+    var next = Object.assign({}, state.deadlines);
+    next[track] = { date: ymd, setAt: new Date().toISOString() };
+    setState({ deadlines: next });
   }
   function toggleLecture(key) {
     var next = Object.assign({}, state.lectureDone);

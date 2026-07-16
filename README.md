@@ -18,6 +18,7 @@ python3 -m http.server 8973
 
 - レクチャー行をタップで完了トグル。セクションは折りたたみ。
 - 問題集グリッドのセルをタップで完了、右上「⋯」でスコア(0–100)入力。
+- ヒーロー上部のチップ（① / ② / 試験）はタップで締切日・試験日を編集可能。**③ カレンダー**タブでは月表示で締切/試験日（計画）と、現在のペースからの完了予測日（予測）を確認できる。
 - フッタから進捗の **エクスポート/インポート（JSON）** とリセットが可能。
 
 ## 構成
@@ -28,10 +29,10 @@ Finder で迷わないよう、入口2つを日本語名で用意しています
 |---|---|
 | `アプリを起動.command` | **アプリの入口（Mac）**。ダブルクリックでダッシュボードが開く（無料AIモード込み） |
 | `はじめにお読みください.html` | **説明書の入口**。開くと `guide.html`（使い方ガイド）へ移動 |
-| `index.html` | 学習ダッシュボード本体（プレーンな `<script>` で `assets/data.js` → `assets/app.js`） |
+| `index.html` | 学習ダッシュボード本体（プレーンな `<script>` で `assets/data.js` → `assets/calendar.js` → `assets/app.js`） |
 | `chat.html` | AI解説チャット本体（`assets/` の chat 系 CSS/JS を読み込み） |
 | `guide.html` | 使い方ガイド本体（初心者向け・自己完結の1ページ読み物） |
-| `assets/` | アプリの部品置き場（`styles.css` / `app.js` / `data.js` / `chat.css` / `chat-*.js`） |
+| `assets/` | アプリの部品置き場（`styles.css` / `app.js` / `calendar.js` / `data.js` / `chat.css` / `chat-*.js`） |
 | `local-bridge/` | 無料AIモード用のローカルサーバ（`127.0.0.1:8975`・`claude` CLI 経由） |
 | `DESIGN.md` | デザイン規約（配色・タイポ・余白・モーション） |
 
