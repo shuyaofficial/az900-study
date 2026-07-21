@@ -20,6 +20,24 @@ window.QUIZ_REGISTRY = (function () {
     if (window.console && console.warn) console.warn("[QUIZ_REGISTRY] " + msg, extra || "");
   }
 
+  // 単一選択（answerIndex: number）が有効か。
+  function isValidAnswerIndex(q) {
+    return typeof q.answerIndex === "number" && q.answerIndex >= 0 && q.answerIndex < q.choices.length;
+  }
+
+  // 複数選択（answerIndices: number[]、長さ2以上・範囲内・重複なし）が有効か。
+  function isValidAnswerIndices(q) {
+    if (!Array.isArray(q.answerIndices) || q.answerIndices.length < 2) return false;
+    var seen = {};
+    for (var i = 0; i < q.answerIndices.length; i++) {
+      var v = q.answerIndices[i];
+      if (typeof v !== "number" || v < 0 || v >= q.choices.length) return false;
+      if (seen[v]) return false;
+      seen[v] = true;
+    }
+    return true;
+  }
+
   // 壊れた問題データは登録せず警告に留め、アプリ全体は動作継続させる
   function isValidQuestion(entry, q) {
     if (!q || typeof q !== "object") { warn("question がオブジェクトではありません"); return false; }
@@ -29,8 +47,8 @@ window.QUIZ_REGISTRY = (function () {
     }
     if (typeof q.stem !== "string" || !q.stem) { warn("stem がありません: " + q.id); return false; }
     if (!Array.isArray(q.choices) || q.choices.length < 2) { warn("choices が不正: " + q.id); return false; }
-    if (typeof q.answerIndex !== "number" || q.answerIndex < 0 || q.answerIndex >= q.choices.length) {
-      warn("answerIndex が範囲外: " + q.id); return false;
+    if (!isValidAnswerIndex(q) && !isValidAnswerIndices(q)) {
+      warn("answerIndex/answerIndices が不正: " + q.id); return false;
     }
     if (q.beginner && Array.isArray(q.beginner.wrong) && q.beginner.wrong.length !== q.choices.length) {
       warn("beginner.wrong の長さが choices と不一致: " + q.id); // 表示は劣化するだけなので登録は許可

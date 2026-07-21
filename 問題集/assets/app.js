@@ -29,6 +29,7 @@
       activeSetId: null,
       phase: "answering",
       selectedIndex: null,
+      selectedIndices: [],
       resultContext: null,
       setupBatchSize: 10,
       setupOrder: "sequential",
@@ -135,7 +136,7 @@
       quiz: nextQuiz,
       ui: Object.assign({}, state.ui, {
         route: "quiz", mode: "normal", activeSetId: setId,
-        phase: "answering", selectedIndex: null, resultContext: null,
+        phase: "answering", selectedIndex: null, selectedIndices: [], resultContext: null,
       }),
     });
   }
@@ -144,7 +145,7 @@
     setState({
       ui: Object.assign({}, state.ui, {
         route: "quiz", mode: "normal", activeSetId: setId,
-        phase: "answering", selectedIndex: null, resultContext: null,
+        phase: "answering", selectedIndex: null, selectedIndices: [], resultContext: null,
       }),
     });
   }
@@ -153,7 +154,7 @@
     setState({
       ui: Object.assign({}, state.ui, {
         route: "quiz", mode: "review", activeSetId: setId,
-        phase: "answering", selectedIndex: null, resultContext: null,
+        phase: "answering", selectedIndex: null, selectedIndices: [], resultContext: null,
       }),
     });
   }
@@ -169,30 +170,68 @@
       quiz: nextQuiz,
       ui: Object.assign({}, state.ui, {
         route: "quiz", mode: "review", activeSetId: setId,
-        phase: "answering", selectedIndex: null, resultContext: null,
+        phase: "answering", selectedIndex: null, selectedIndices: [], resultContext: null,
       }),
     });
   }
 
-  function selectChoice(index) {
-    if (state.ui.phase !== "answering") return; // revealed 中の二重解答を防止
+  // 現在出題中の問題を特定する。取得できなければ null（呼び出し側は何もしない）。
+  function currentQuestionContext() {
     var setId = state.ui.activeSetId;
     var entry = REGISTRY.getSet(setId);
-    if (!entry) return;
+    if (!entry) return null;
     var sessionKey = sessionKeyFor(state.ui.mode);
     var session = Store.getSetState(state.quiz, setId)[sessionKey];
-    if (!session) return;
+    if (!session) return null;
     var qid = Engine.currentQuestionId(session);
-    if (!qid) return;
+    if (!qid) return null;
     var question = findQuestion(entry, qid);
-    if (!question) return;
-    var isCorrect = index === question.answerIndex;
-    var nextQuiz = updateSetState(setId, function (s) {
-      return Engine.applyAnswer(s, sessionKey, qid, index, isCorrect);
+    if (!question) return null;
+    return { setId: setId, sessionKey: sessionKey, session: session, qid: qid, question: question };
+  }
+
+  function selectChoice(index) {
+    if (state.ui.phase !== "answering") return; // revealed 中の二重解答を防止
+    var ctx = currentQuestionContext();
+    if (!ctx) return;
+    if (ctx.question.type === "multi") { toggleChoice(index); return; }
+    var isCorrect = index === ctx.question.answerIndex;
+    var nextQuiz = updateSetState(ctx.setId, function (s) {
+      return Engine.applyAnswer(s, ctx.sessionKey, ctx.qid, index, isCorrect);
     });
     setState({
       quiz: nextQuiz,
       ui: Object.assign({}, state.ui, { phase: "revealed", selectedIndex: index }),
+    });
+  }
+
+  // 複数選択の選択肢トグル。answering 中の multi 問題でのみ有効。
+  function toggleChoice(index) {
+    if (state.ui.phase !== "answering") return;
+    var ctx = currentQuestionContext();
+    if (!ctx || ctx.question.type !== "multi") return;
+    var current = state.ui.selectedIndices;
+    var idx = current.indexOf(index);
+    var next = idx === -1 ? current.concat([index]) : current.slice(0, idx).concat(current.slice(idx + 1));
+    setState({ ui: Object.assign({}, state.ui, { selectedIndices: next }) });
+  }
+
+  // 複数選択の解答確定。選択数が正解数と一致しているときのみ有効。
+  function confirmMulti() {
+    if (state.ui.phase !== "answering") return;
+    var ctx = currentQuestionContext();
+    if (!ctx || ctx.question.type !== "multi") return;
+    var required = ctx.question.answerIndices;
+    var selected = state.ui.selectedIndices;
+    if (selected.length !== required.length) return;
+    var sorted = selected.slice().sort(function (a, b) { return a - b; });
+    var isCorrect = Engine.isSameIndexSet(sorted, required);
+    var nextQuiz = updateSetState(ctx.setId, function (s) {
+      return Engine.applyAnswer(s, ctx.sessionKey, ctx.qid, sorted, isCorrect);
+    });
+    setState({
+      quiz: nextQuiz,
+      ui: Object.assign({}, state.ui, { phase: "revealed", selectedIndices: sorted }),
     });
   }
 
@@ -219,7 +258,7 @@
     } else {
       setState({
         quiz: nextQuiz,
-        ui: Object.assign({}, state.ui, { phase: "answering", selectedIndex: null }),
+        ui: Object.assign({}, state.ui, { phase: "answering", selectedIndex: null, selectedIndices: [] }),
       });
     }
   }
@@ -230,7 +269,7 @@
     setState({
       ui: Object.assign({}, state.ui, {
         route: "quiz", mode: "normal", activeSetId: ctx.setId,
-        phase: "answering", selectedIndex: null, resultContext: null,
+        phase: "answering", selectedIndex: null, selectedIndices: [], resultContext: null,
       }),
     });
   }
@@ -308,18 +347,17 @@
     var ui = state.ui;
     var entry = REGISTRY.getSet(ui.activeSetId);
     if (!entry) return null;
-    var sessionKey = sessionKeyFor(ui.mode);
-    var session = Store.getSetState(state.quiz, ui.activeSetId)[sessionKey];
-    if (!session) return null;
-    var qid = Engine.currentQuestionId(session);
-    if (!qid) return null;
-    var question = findQuestion(entry, qid);
-    if (!question) return null;
+    var ctx = currentQuestionContext();
+    if (!ctx) return null;
+    var session = ctx.session;
+    var question = ctx.question;
     var bounds = Engine.currentBatchBounds(session);
     var posInBatch = session.cursor - bounds.start + 1;
     var batchTotal = bounds.end - bounds.start;
     var batchIndex = Engine.batchIndexOf(session.cursor, session.batchSize);
     var hasBeginner = !!(question.beginner && question.beginner.lead);
+    var isMulti = question.type === "multi";
+    var requiredCount = isMulti ? question.answerIndices.length : 0;
     return {
       setTitle: entry.title,
       mode: ui.mode,
@@ -334,12 +372,19 @@
       phase: ui.phase,
       selectedIndex: ui.selectedIndex,
       correctIndex: question.answerIndex,
+      isMulti: isMulti,
+      requiredCount: requiredCount,
+      selectedIndices: ui.selectedIndices,
+      correctIndices: isMulti ? question.answerIndices : [],
+      canConfirm: isMulti && ui.selectedIndices.length === requiredCount,
       explanation: question.explanation,
       hasBeginner: hasBeginner,
       beginnerLead: hasBeginner ? question.beginner.lead : "",
       beginnerWrongList: buildBeginnerWrongList(question),
       isLastOfBatch: Engine.isLastQuestionOfBatch(session),
       onSelect: selectChoice,
+      onToggle: toggleChoice,
+      onConfirm: confirmMulti,
       onNext: goNext,
       onExit: goHome,
     };

@@ -59,9 +59,23 @@
     };
   }
 
+  // 数値配列同士が集合として一致するか（順序不問・長さ一致＋全要素一致）。
+  // 複数選択問題の正誤判定（選択集合 = 正解集合）に使う。
+  function isSameIndexSet(a, b) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+    var sortedA = a.slice().sort(function (x, y) { return x - y; });
+    var sortedB = b.slice().sort(function (x, y) { return x - y; });
+    for (var i = 0; i < sortedA.length; i++) {
+      if (sortedA[i] !== sortedB[i]) return false;
+    }
+    return true;
+  }
+
   // 解答確定の副作用を1つに集約: history加算 → wrongPool更新 → session.results記録。
   // cursor はここでは進めない（「次へ」押下時に advanceCursor で進める）。
-  function applyAnswer(setState, sessionKey, questionId, selectedIndex, isCorrect) {
+  // @param {number|number[]} selected 単一選択は選択したindex(number)、複数選択は選択したindexの配列(number[])。
+  //   正誤判定(isCorrect)は呼び出し側で計算済みの値をそのまま受け取る。
+  function applyAnswer(setState, sessionKey, questionId, selected, isCorrect) {
     var history = Object.assign({}, setState.history);
     var prevH = history[questionId] || { attempts: 0, correct: 0, last: null, lastAt: "" };
     history[questionId] = {
@@ -81,7 +95,7 @@
 
     var session = setState[sessionKey];
     var results = Object.assign({}, session.results);
-    results[questionId] = { selected: selectedIndex, ok: isCorrect };
+    results[questionId] = { selected: selected, ok: isCorrect };
     var nextSession = Object.assign({}, session, { results: results });
 
     var patch = { history: history, wrongPool: wrongPool };
@@ -151,6 +165,7 @@
     currentQuestionId: currentQuestionId,
     createSession: createSession,
     createReviewSession: createReviewSession,
+    isSameIndexSet: isSameIndexSet,
     applyAnswer: applyAnswer,
     advanceCursor: advanceCursor,
     batchStats: batchStats,

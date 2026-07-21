@@ -29,6 +29,6 @@ Udemy模擬試験で間違えた問題を、選択肢をタップして解き直
 ## 構成
 
 - `data/registry.js` — セット登録レジストリ（データより先に読み込む）
-- `data/set4.js` — 問題集4（19問）
+- `data/set1.js`〜`set5.js` — 問題集1〜5（計92問。複数選択問題は `type: "multi"` + `answerIndices`）
 - `assets/` — アプリ本体（dom/store/engine/views/app + quiz.css）
 - 進捗の保存先: localStorage キー `az900-quiz-v1`（学習ダッシュボードとは独立）

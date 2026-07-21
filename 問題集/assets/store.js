@@ -60,13 +60,20 @@
     return out;
   }
 
+  // selected は単一選択なら数値、複数選択なら数値配列。どちらでもなければ -1（未回答扱い）。
+  function normalizeSelected(raw) {
+    if (isNum(raw)) return raw;
+    if (isArr(raw)) return raw.filter(isNum);
+    return -1;
+  }
+
   function normalizeResults(raw) {
     var out = {};
     if (!isObj(raw)) return out;
     Object.keys(raw).forEach(function (id) {
       var r = raw[id];
       if (!isObj(r)) return;
-      out[id] = { selected: isNum(r.selected) ? r.selected : -1, ok: !!r.ok };
+      out[id] = { selected: normalizeSelected(r.selected), ok: !!r.ok };
     });
     return out;
   }

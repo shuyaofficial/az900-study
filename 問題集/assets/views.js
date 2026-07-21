@@ -10,7 +10,7 @@
 
   var el = window.QuizDom.el;
 
-  var TYPE_LABELS = { yesno: "はい/いいえ", single: "単一選択", completion: "穴埋め" };
+  var TYPE_LABELS = { yesno: "はい/いいえ", single: "単一選択", completion: "穴埋め", multi: "複数選択" };
 
   /* --- home ------------------------------------------------------------------ */
   function buildHome(vm) {
@@ -152,10 +152,25 @@
     var choices = el("div", { class: "qz-choices" }, q.choices.map(function (choiceText, i) {
       return buildChoiceButton(vm, choiceText, i);
     }));
-    return el("section", { class: "qz-card qz-question" }, [meta, stem, choices]);
+    var children = [meta, stem, choices];
+    if (vm.isMulti && vm.phase === "answering") children.push(buildMultiConfirmButton(vm));
+    return el("section", { class: "qz-card qz-question" }, children);
+  }
+
+  // 「回答する（n/N個選択）」ボタン。選択数が必要数と一致するまで disabled。
+  function buildMultiConfirmButton(vm) {
+    var label = "回答する（" + vm.selectedIndices.length + "/" + vm.requiredCount + "個選択）";
+    return el("button", {
+      class: "qz-btn qz-btn--primary qz-btn--block num", type: "button",
+      disabled: !vm.canConfirm, text: label, onclick: vm.onConfirm,
+    });
   }
 
   function buildChoiceButton(vm, choiceText, index) {
+    return vm.isMulti ? buildMultiChoiceButton(vm, choiceText, index) : buildSingleChoiceButton(vm, choiceText, index);
+  }
+
+  function buildSingleChoiceButton(vm, choiceText, index) {
     var revealed = vm.phase === "revealed";
     var isCorrect = index === vm.correctIndex;
     var isSelected = index === vm.selectedIndex;
@@ -176,6 +191,32 @@
     return el("button", {
       class: cls, type: "button", disabled: revealed,
       onclick: function () { vm.onSelect(index); },
+    }, children);
+  }
+
+  // 複数選択の選択肢ボタン。トグル式（disabledになるまで何度でも選び直せる）。
+  function buildMultiChoiceButton(vm, choiceText, index) {
+    var revealed = vm.phase === "revealed";
+    var isCorrect = vm.correctIndices.indexOf(index) !== -1;
+    var isSelected = vm.selectedIndices.indexOf(index) !== -1;
+    var cls = "qz-choice";
+    var status = null;
+    var icon = isSelected ? "✓" : null;
+    if (revealed) {
+      if (isCorrect && isSelected) { cls += " qz-choice--correct"; status = "正解"; icon = "✓"; }
+      else if (isCorrect) { cls += " qz-choice--correct"; status = "正解（未選択）"; icon = "✓"; }
+      else if (isSelected) { cls += " qz-choice--wrong"; status = "不正解"; icon = "✕"; }
+      else { cls += " qz-choice--dim"; icon = null; }
+    } else if (isSelected) {
+      cls += " qz-choice--selected";
+    }
+    var children = [el("span", { class: "qz-choice__text", text: choiceText })];
+    if (icon) children.unshift(el("span", { class: "qz-choice__icon", "aria-hidden": "true", text: icon }));
+    if (status) children.push(el("span", { class: "qz-choice__status", text: status }));
+    return el("button", {
+      class: cls, type: "button", disabled: revealed,
+      "aria-pressed": isSelected ? "true" : "false",
+      onclick: function () { vm.onToggle(index); },
     }, children);
   }
 

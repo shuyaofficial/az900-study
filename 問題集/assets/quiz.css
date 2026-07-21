@@ -192,6 +192,11 @@ button {
   transform: scale(.97);
 }
 
+.qz-btn:disabled {
+  opacity: .4;
+  cursor: default;
+}
+
 .qz-btn--block {
   width: 100%;
 }
@@ -453,6 +458,15 @@ button {
 
 .qz-choice--dim {
   opacity: .5;
+}
+
+.qz-choice--selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.qz-choice--selected .qz-choice__icon {
+  color: var(--accent);
 }
 
 /* --- explain / beginner cards ------------------------------------------------------------ */
