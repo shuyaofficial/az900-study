@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>問題集 — AZ-900 演習</title>
+  <link rel="stylesheet" href="assets/quiz.css">
+</head>
+
+<body>
+  <main class="qz-app" id="app">
+    <!-- app.js が動的にレンダリングする。JS無効時のフォールバック文言のみ置く。 -->
+    <noscript>
+      <p style="padding:24px;text-align:center;">
+        この問題集の利用には JavaScript が必要です。
+      </p>
+    </noscript>
+  </main>
+
+  <!--
+    非module・プレーンな defer スクリプト。読み込み順=実行順が仕様のため、
+    async への変更は禁止（順序が崩れると window.QUIZ_REGISTRY 等が未定義のまま
+    後続スクリプトが動き、壊れる）。
+
+    読み込み順: data/registry.js → data/set4.js → assets/dom.js → assets/store.js
+              → assets/engine.js → assets/views.js → assets/app.js
+
+    セット追加手順: data/setN.js を置いて window.QUIZ_REGISTRY.register({ set, questions })
+    を呼ぶよう実装し、下の <script defer> リストに data/registry.js より後・
+    assets/*.js より前の位置へ1行追記する（例: data/set4.js の直後に data/set5.js）。
+    setN.js が未配置/読み込み失敗でも他のスクリプトの実行順には影響しない
+    （QUIZ_REGISTRY にセットが1つも無ければ home 画面は空状態を表示する）。
+  -->
+  <script defer src="data/registry.js"></script>
+  <script defer src="data/set4.js"></script>
+  <script defer src="assets/dom.js"></script>
+  <script defer src="assets/store.js"></script>
+  <script defer src="assets/engine.js"></script>
+  <script defer src="assets/views.js"></script>
+  <script defer src="assets/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,633 @@
+/* ===========================================================================
+   AZ-900 問題集 — assets/quiz.css
+   DESIGN.md のトークン・タイポ・スペーシング・角丸・モーション規約を複製して使う。
+   ルート(../)の assets/styles.css は import しない（file:// でも独立して動くように）。
+   =========================================================================== */
+
+:root {
+  color-scheme: light dark;
+  --bg: #F5F5F7;
+  --surface: #FFFFFF;
+  --surface-2: #F4F4F7;
+  --text: #1D1D1F;
+  --text-2: #6E6E73;
+  --text-3: #A1A1A6;
+  --separator: rgba(0, 0, 0, 0.08);
+  --accent: #0071E3;
+  --accent-soft: rgba(0, 113, 227, 0.12);
+  --success: #34C759;
+  --success-soft: rgba(52, 199, 89, 0.16);
+  --warn: #FF9F0A;
+  --danger: #FF3B30;
+  --danger-soft: rgba(255, 59, 48, 0.14);
+  --ring-track: rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, .04), 0 10px 30px rgba(0, 0, 0, .06);
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Hiragino Sans", "Noto Sans JP", sans-serif;
+
+  --ease-out: cubic-bezier(.22, .61, .36, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --dur-fast: 180ms;
+  --dur: 280ms;
+  --dur-slow: 460ms;
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-pill: 999px;
+
+  --pad-page: 16px;
+  --maxw: 680px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --surface: #1C1C1E;
+    --surface-2: #2C2C2E;
+    --text: #F5F5F7;
+    --text-2: #AEAEB2;
+    --text-3: #6E6E73;
+    --separator: rgba(255, 255, 255, 0.10);
+    --accent: #0A84FF;
+    --accent-soft: rgba(10, 132, 255, 0.18);
+    --success: #30D158;
+    --success-soft: rgba(48, 209, 88, 0.22);
+    --warn: #FFD60A;
+    --danger: #FF453A;
+    --danger-soft: rgba(255, 69, 58, 0.22);
+    --ring-track: rgba(255, 255, 255, 0.12);
+    --shadow-card: none;
+  }
+}
+
+/* --- reset ------------------------------------------------------------------ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  padding:
+    env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* --- layout ------------------------------------------------------------------ */
+.qz-app {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 8px var(--pad-page) 48px;
+}
+
+@media (min-width: 480px) {
+  .qz-app {
+    --pad-page: 20px;
+  }
+}
+
+.qz-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* --- card --------------------------------------------------------------------- */
+.qz-card {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .qz-card {
+    border: 1px solid var(--separator);
+  }
+}
+
+/* --- header (home) ------------------------------------------------------------ */
+.qz-header {
+  padding: 16px 4px 8px;
+}
+
+.qz-header__title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.qz-header__caption {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.qz-empty {
+  text-align: center;
+  color: var(--text-3);
+  font-size: 14px;
+  padding: 40px 20px;
+}
+
+/* --- buttons -------------------------------------------------------------------- */
+.qz-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 20px;
+  border-radius: var(--r-md);
+  font-size: 15px;
+  font-weight: 600;
+  transition: transform var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+.qz-btn:active {
+  transform: scale(.97);
+}
+
+.qz-btn--block {
+  width: 100%;
+}
+
+.qz-btn--primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.qz-btn--outline {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.qz-btn--ghost {
+  background: none;
+  color: var(--text-2);
+}
+
+.qz-back {
+  align-self: flex-start;
+  font-size: 14px;
+  color: var(--text-2);
+  padding: 8px 4px;
+}
+
+/* --- set list (home) ------------------------------------------------------------ */
+.qz-set-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.qz-set-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.qz-set-card__title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.qz-set-card__meta {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+/* --- setup ------------------------------------------------------------------------ */
+.qz-page__title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  padding: 0 4px;
+}
+
+.qz-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.qz-setup__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qz-setup__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.qz-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.qz-pill {
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 14px;
+  transition: background var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out);
+}
+
+.qz-pill[data-selected="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.qz-setup__note {
+  font-size: 13px;
+  color: var(--warn);
+}
+
+/* --- quiz head / progress --------------------------------------------------------- */
+.qz-quiz-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 0;
+}
+
+.qz-quiz-head__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.qz-exit-btn {
+  font-size: 13px;
+  color: var(--text-2);
+  padding: 8px 4px;
+}
+
+.qz-progress-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 4px;
+}
+
+.qz-progress-label {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.qz-progress-bar {
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.qz-progress-bar__fill {
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+@media (prefers-color-scheme: dark) {
+  .qz-progress-bar__fill {
+    background: var(--accent);
+    opacity: .5;
+  }
+}
+
+/* --- question card ------------------------------------------------------------------ */
+.qz-question {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.qz-question__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.qz-question__no {
+  color: var(--text-3);
+}
+
+.qz-type-badge {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  background: var(--surface-2);
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+}
+
+.qz-question__stem {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+/* --- choices -------------------------------------------------------------------------- */
+.qz-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.qz-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--separator);
+  background: var(--surface);
+  text-align: left;
+  font-size: 15px;
+  transition: background var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out),
+    opacity var(--dur) var(--ease-out);
+}
+
+.qz-choice:disabled {
+  cursor: default;
+}
+
+.qz-choice__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.4;
+}
+
+.qz-choice__icon {
+  flex: 0 0 auto;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.qz-choice__status {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.qz-choice--correct {
+  background: var(--success-soft);
+  border-color: var(--success);
+}
+
+.qz-choice--correct .qz-choice__icon {
+  color: var(--success);
+}
+
+.qz-choice--wrong {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+
+.qz-choice--wrong .qz-choice__icon {
+  color: var(--danger);
+}
+
+.qz-choice--dim {
+  opacity: .5;
+}
+
+/* --- explain / beginner cards ------------------------------------------------------------ */
+.qz-explain,
+.qz-beginner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.qz-explain__head,
+.qz-beginner__head {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.qz-explain__body,
+.qz-beginner__lead {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-2);
+  white-space: pre-line;
+}
+
+.qz-beginner {
+  background: var(--surface-2);
+}
+
+@media (prefers-color-scheme: dark) {
+  .qz-beginner {
+    background: var(--surface);
+  }
+}
+
+.qz-beginner__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+}
+
+.qz-beginner__item {
+  padding-top: 10px;
+  border-top: 1px solid var(--separator);
+}
+
+.qz-beginner__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.qz-beginner__mark {
+  flex: 0 0 auto;
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.qz-beginner__reason {
+  margin-top: 4px;
+  margin-left: 24px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-2);
+  white-space: pre-line;
+}
+
+/* --- result: score hero ---------------------------------------------------------------- */
+.qz-result-hero {
+  text-align: center;
+  padding: 28px 20px 24px;
+}
+
+.qz-result-hero__label {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 6px;
+}
+
+.qz-result-hero__score {
+  font-size: clamp(44px, 12vw, 64px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.qz-result-hero__slash {
+  color: var(--text-3);
+  font-weight: 400;
+  margin: 0 4px;
+}
+
+.qz-result-hero__pct {
+  margin-top: 6px;
+  font-size: 15px;
+  color: var(--text-2);
+}
+
+.qz-complete,
+.qz-review-summary {
+  text-align: center;
+}
+
+.qz-complete__head {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.qz-complete__body,
+.qz-review-summary__body {
+  font-size: 15px;
+  color: var(--text-2);
+}
+
+/* --- result: wrong list ------------------------------------------------------------------ */
+.qz-wrong-list__head {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.qz-wrong-list__ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qz-wrong-list__item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--separator);
+}
+
+.qz-wrong-list__item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.qz-wrong-list__no {
+  flex: 0 0 auto;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+.qz-wrong-list__preview {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- result actions ------------------------------------------------------------------------ */
+.qz-result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* --- reduced motion --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
